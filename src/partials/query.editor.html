@@ -1,0 +1,62 @@
+<query-editor-row query-ctrl="ctrl" can-collapse="false">
+    <div class="gf-form-inline">
+        <div class="gf-form">
+            <div class="gf-form">
+                <label class="gf-form-label query-keyword width-12">
+                    Method
+                </label>
+            </div>
+        </div>
+        <div class="gf-form">
+            <metric-segment segment="ctrl.methodSegment" on-change="ctrl.onMethodChange()"></metric-segment>
+        </div>
+        <div class="gf-form gf-form--grow">
+            <div class="gf-form-label gf-form-label--grow"></div>
+        </div>
+    </div>
+    <div class="gf-form-inline">
+        <div class="gf-form">
+            <div class="gf-form">
+                <label class="gf-form-label query-keyword width-12">
+                    Endpoint
+                </label>
+            </div>
+        </div>
+        <div class="gf-form">
+            <metric-segment segment="ctrl.endpointSegment" on-change="ctrl.onEndpointChange()"></metric-segment>
+        </div>
+        <div class="gf-form gf-form--grow">
+            <div class="gf-form-label gf-form-label--grow"></div>
+        </div>
+    </div>
+    <div class="gf-form-inline">
+        <div class="gf-form">
+            <div class="gf-form">
+                <label class="gf-form-label query-keyword width-12">
+                    JMESPath expression
+                </label>
+            </div>
+        </div>
+        <div class="gf-form">
+            <metric-segment segment="ctrl.expressionSegment" on-change="ctrl.onExpressionChange()"></metric-segment>
+        </div>
+        <div class="gf-form gf-form--grow">
+            <div class="gf-form-label gf-form-label--grow"></div>
+        </div>
+    </div>
+    <div class="gf-form-inline">
+        <div class="gf-form">
+            <div class="gf-form">
+                <label class="gf-form-label query-keyword width-12">
+                    Regex
+                </label>
+            </div>
+        </div>
+        <div class="gf-form">
+            <metric-segment segment="ctrl.regexSegment" on-change="ctrl.onRegexChange()"></metric-segment>
+        </div>
+        <div class="gf-form gf-form--grow">
+            <div class="gf-form-label gf-form-label--grow"></div>
+        </div>
+    </div>
+</query-editor-row>

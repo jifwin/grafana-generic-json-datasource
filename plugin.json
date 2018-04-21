@@ -1,0 +1,27 @@
+{
+  "id": "grafana-generic-json-datasource-plugin",
+  "name": "Generic JSON",
+  "type": "datasource",
+  "metrics": true,
+  "annotations": false,
+  "staticRoot": ".",
+  "info": {
+    "description": "generic JSON datasource",
+    "author": {
+      "name": "Grzegorz Pietrusza"
+    },
+    "keywords": [
+      "json",
+      "generic"
+    ],
+    "logos": {
+      "small": "img/logo_small.png",
+      "large": "img/logo_large.png"
+    },
+    "version": "0.0.1"
+  },
+  "dependencies": {
+    "grafanaVersion": "4.6.2+",
+    "plugins": []
+  }
+}
