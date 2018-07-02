@@ -3,4 +3,5 @@ export declare class Target {
     endpoint: string;
     expression: string;
     regex: string;
+    alias: string;
 }

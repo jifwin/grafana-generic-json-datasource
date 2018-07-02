@@ -7,11 +7,13 @@ export declare class GenericJSONQueryCtrl extends QueryCtrl {
     private endpointSegment;
     private expressionSegment;
     private regexSegment;
+    private aliasSegment;
     /** @ngInject **/
     constructor($scope: any, $injector: any, uiSegmentSrv: any);
     onMethodChange(): void;
     onEndpointChange(): void;
     onExpressionChange(): void;
+    onAliasChange(): void;
     onRegexChange(): void;
     private onTargetChange(newTarget, oldTarget);
     private isTargetChanged(newTarget, oldTarget);

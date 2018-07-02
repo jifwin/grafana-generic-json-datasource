@@ -3,4 +3,5 @@ export class Target {
     public endpoint: string = undefined;
     public expression: string = undefined;
     public regex: string = undefined;
+    public alias: string = undefined;
 }

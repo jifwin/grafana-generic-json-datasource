@@ -27,6 +27,7 @@ System.register(["app/plugins/sdk", "../target"], function(exports_1) {
                     this.endpointSegment = uiSegmentSrv.newSegment(this.target.query.endpoint || "endpoint");
                     this.expressionSegment = uiSegmentSrv.newSegment(this.target.query.expression || "expression");
                     this.regexSegment = uiSegmentSrv.newSegment(this.target.query.regex || GenericJSONQueryCtrl.MATCH_ALL_REGEX);
+                    this.aliasSegment = uiSegmentSrv.newSegment(this.target.query.alias || GenericJSONQueryCtrl.MATCH_ALL_REGEX);
                 }
                 GenericJSONQueryCtrl.prototype.onMethodChange = function () {
                     this.target.query.method = this.methodSegment.value;
@@ -36,6 +37,9 @@ System.register(["app/plugins/sdk", "../target"], function(exports_1) {
                 };
                 GenericJSONQueryCtrl.prototype.onExpressionChange = function () {
                     this.target.query.expression = this.expressionSegment.value;
+                };
+                GenericJSONQueryCtrl.prototype.onAliasChange = function () {
+                    this.target.query.alias = this.aliasSegment.value;
                 };
                 GenericJSONQueryCtrl.prototype.onRegexChange = function () {
                     this.target.query.regex = this.regexSegment.value;

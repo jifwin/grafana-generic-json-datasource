@@ -9,6 +9,7 @@ System.register([], function(exports_1) {
                     this.endpoint = undefined;
                     this.expression = undefined;
                     this.regex = undefined;
+                    this.alias = undefined;
                 }
                 return Target;
             })();

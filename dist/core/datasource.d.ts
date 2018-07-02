@@ -7,7 +7,12 @@ export declare class GenericJSONDatasource {
     private backendSrv;
     private templateSrv;
     private jmespath;
-    constructor(instanceSettings: any, backendSrv: any, templateSrv: any);
+    private $q;
+    constructor(instanceSettings: any, backendSrv: any, templateSrv: any, $q: any);
     query(options: any): any;
     metricFindQuery(query: string): void;
+    private buildRequestKey(request);
+    private mapToDataPoints(result);
+    private buildEvaluationFunction(expression, regex);
+    private matchRegex(value, regex);
 }

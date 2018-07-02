@@ -8,6 +8,7 @@ export class GenericJSONQueryCtrl extends QueryCtrl {
     private endpointSegment: any;
     private expressionSegment: any;
     private regexSegment: any;
+    private aliasSegment: any;
 
     /** @ngInject **/
     constructor($scope, $injector, private uiSegmentSrv) {
@@ -18,6 +19,7 @@ export class GenericJSONQueryCtrl extends QueryCtrl {
         this.endpointSegment = uiSegmentSrv.newSegment(this.target.query.endpoint || "endpoint");
         this.expressionSegment = uiSegmentSrv.newSegment(this.target.query.expression || "expression");
         this.regexSegment = uiSegmentSrv.newSegment(this.target.query.regex || GenericJSONQueryCtrl.MATCH_ALL_REGEX);
+        this.aliasSegment = uiSegmentSrv.newSegment(this.target.query.alias || GenericJSONQueryCtrl.MATCH_ALL_REGEX);
     }
 
     public onMethodChange() {
@@ -30,6 +32,10 @@ export class GenericJSONQueryCtrl extends QueryCtrl {
 
     public onExpressionChange() {
         this.target.query.expression = this.expressionSegment.value;
+    }
+
+    public onAliasChange() {
+        this.target.query.alias = this.aliasSegment.value;
     }
 
     public onRegexChange() {
