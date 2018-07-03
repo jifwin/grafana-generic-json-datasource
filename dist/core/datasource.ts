@@ -1,4 +1,6 @@
 import _ from "lodash";
+import {Target} from "../target";
+import {TargetUnpacker} from "./target_unpacker";
 import {TemplatingUtils} from "./templating_utils";
 
 export class GenericJSONDatasource {
@@ -26,24 +28,34 @@ export class GenericJSONDatasource {
 
     public query(options) {
         const templatingUtils = new TemplatingUtils(this.templateSrv, options.scopedVars);
+        const targetUnpacker = new TargetUnpacker(templatingUtils);
 
-        const targetsRequests = _.flatten(_.map(options.targets, (target) => {
-            const query = target.query;
-            const request = {
-                method: query.method,
-                url: this.url + query.endpoint,
-                withCredentials: this.withCredentials
-            };
+        const targetsRequests = _.chain(options.targets)
+            .map((target) => {
+                const query = target.query;
+                query.refId = target.refId;
+                return query;
+            })
+            .map((target) => targetUnpacker.unpack(target, "endpoint"))
+            .flatten()
+            .map((target) => targetUnpacker.unpack(target, "expression"))
+            .flatten()
+            .map((query) => {
+                const request = {
+                    method: query.method,
+                    url: this.url + query.endpoint,
+                    withCredentials: this.withCredentials
+                };
 
-            const unpackedExpresions = templatingUtils.replace(query.expression);
-            return _.map(unpackedExpresions, (unpackedExpression) => {
                 return {
                     request,
-                    seriesName: query.alias === "__REF_ID" ? target.refId : this.matchRegex(unpackedExpression, query.alias),
-                    valueEvaluator: this.buildEvaluationFunction(unpackedExpression, query.regex)
+                    seriesNameEvaluator: query.seriesName === Target.REF_ID ?
+                        () => query.refId :
+                        this.buildSeriesNameEvaluationFunction(query.seriesName),
+                    valueEvaluator: this.buildValueEvaluationFunction(query.expression, query.regex)
                 };
-            });
-        }));
+            })
+            .value();
 
         const inFlightRequests = {};
         targetsRequests.forEach((request) => {
@@ -61,7 +73,7 @@ export class GenericJSONDatasource {
             return runningRequest
                 .then((result) => {
                     return {
-                        target: request.seriesName,
+                        target: request.seriesNameEvaluator(result),
                         values: request.valueEvaluator(result)
                     };
                 })
@@ -105,7 +117,13 @@ export class GenericJSONDatasource {
         }
     }
 
-    private buildEvaluationFunction(expression, regex) {
+    private buildSeriesNameEvaluationFunction(expression) {
+        return (result) => {
+            return this.jmespath.search(result.data, expression);
+        };
+    }
+
+    private buildValueEvaluationFunction(expression, regex) {
         return (result) => {
             const value = this.jmespath.search(result.data, expression);
             return this.matchRegex(value, regex);
@@ -113,6 +131,9 @@ export class GenericJSONDatasource {
     }
 
     private matchRegex(value, regex) {
-        return regex ? value.match(regex)[0] : value;
+        if (typeof value === "string") {
+            return value.match(regex)[0];
+        }
+        return value;
     }
 }

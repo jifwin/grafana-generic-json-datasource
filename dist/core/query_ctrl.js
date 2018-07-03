@@ -23,11 +23,11 @@ System.register(["app/plugins/sdk", "../target"], function(exports_1) {
                     this.uiSegmentSrv = uiSegmentSrv;
                     $scope.$watch("ctrl.target.query", this.onTargetChange.bind(this), true);
                     this.target.query = this.target.query || new target_1.Target();
-                    this.methodSegment = uiSegmentSrv.newSegment(this.target.query.method || "GET");
+                    this.methodSegment = uiSegmentSrv.newSegment(this.target.query.method);
                     this.endpointSegment = uiSegmentSrv.newSegment(this.target.query.endpoint || "endpoint");
                     this.expressionSegment = uiSegmentSrv.newSegment(this.target.query.expression || "expression");
-                    this.regexSegment = uiSegmentSrv.newSegment(this.target.query.regex || GenericJSONQueryCtrl.MATCH_ALL_REGEX);
-                    this.aliasSegment = uiSegmentSrv.newSegment(this.target.query.alias || GenericJSONQueryCtrl.MATCH_ALL_REGEX);
+                    this.regexSegment = uiSegmentSrv.newSegment(this.target.query.regex);
+                    this.seriesNameSegment = uiSegmentSrv.newSegment(this.target.query.seriesName);
                 }
                 GenericJSONQueryCtrl.prototype.onMethodChange = function () {
                     this.target.query.method = this.methodSegment.value;
@@ -38,8 +38,8 @@ System.register(["app/plugins/sdk", "../target"], function(exports_1) {
                 GenericJSONQueryCtrl.prototype.onExpressionChange = function () {
                     this.target.query.expression = this.expressionSegment.value;
                 };
-                GenericJSONQueryCtrl.prototype.onAliasChange = function () {
-                    this.target.query.alias = this.aliasSegment.value;
+                GenericJSONQueryCtrl.prototype.onSeriesNameChange = function () {
+                    this.target.query.seriesName = this.seriesNameSegment.value;
                 };
                 GenericJSONQueryCtrl.prototype.onRegexChange = function () {
                     this.target.query.regex = this.regexSegment.value;
@@ -53,7 +53,6 @@ System.register(["app/plugins/sdk", "../target"], function(exports_1) {
                     return JSON.stringify(newTarget) !== JSON.stringify(oldTarget);
                 };
                 GenericJSONQueryCtrl.templateUrl = "partials/query.editor.html";
-                GenericJSONQueryCtrl.MATCH_ALL_REGEX = "(.*?)";
                 return GenericJSONQueryCtrl;
             })(sdk_1.QueryCtrl);
             exports_1("GenericJSONQueryCtrl", GenericJSONQueryCtrl);

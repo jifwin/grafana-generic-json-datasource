@@ -3,23 +3,22 @@ import {Target} from "../target";
 
 export class GenericJSONQueryCtrl extends QueryCtrl {
     public static templateUrl = "partials/query.editor.html";
-    private static MATCH_ALL_REGEX = "(.*?)";
     public methodSegment: any;
     private endpointSegment: any;
     private expressionSegment: any;
     private regexSegment: any;
-    private aliasSegment: any;
+    private seriesNameSegment: any;
 
     /** @ngInject **/
     constructor($scope, $injector, private uiSegmentSrv) {
         super($scope, $injector);
         $scope.$watch("ctrl.target.query", this.onTargetChange.bind(this), true);
         this.target.query = this.target.query || new Target();
-        this.methodSegment = uiSegmentSrv.newSegment(this.target.query.method || "GET");
+        this.methodSegment = uiSegmentSrv.newSegment(this.target.query.method);
         this.endpointSegment = uiSegmentSrv.newSegment(this.target.query.endpoint || "endpoint");
         this.expressionSegment = uiSegmentSrv.newSegment(this.target.query.expression || "expression");
-        this.regexSegment = uiSegmentSrv.newSegment(this.target.query.regex || GenericJSONQueryCtrl.MATCH_ALL_REGEX);
-        this.aliasSegment = uiSegmentSrv.newSegment(this.target.query.alias || GenericJSONQueryCtrl.MATCH_ALL_REGEX);
+        this.regexSegment = uiSegmentSrv.newSegment(this.target.query.regex);
+        this.seriesNameSegment = uiSegmentSrv.newSegment(this.target.query.seriesName);
     }
 
     public onMethodChange() {
@@ -34,8 +33,8 @@ export class GenericJSONQueryCtrl extends QueryCtrl {
         this.target.query.expression = this.expressionSegment.value;
     }
 
-    public onAliasChange() {
-        this.target.query.alias = this.aliasSegment.value;
+    public onSeriesNameChange() {
+        this.target.query.seriesName = this.seriesNameSegment.value;
     }
 
     public onRegexChange() {

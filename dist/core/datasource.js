@@ -1,10 +1,16 @@
-System.register(["lodash", "./templating_utils"], function(exports_1) {
-    var lodash_1, templating_utils_1;
+System.register(["lodash", "../target", "./target_unpacker", "./templating_utils"], function(exports_1) {
+    var lodash_1, target_1, target_unpacker_1, templating_utils_1;
     var GenericJSONDatasource;
     return {
         setters:[
             function (lodash_1_1) {
                 lodash_1 = lodash_1_1;
+            },
+            function (target_1_1) {
+                target_1 = target_1_1;
+            },
+            function (target_unpacker_1_1) {
+                target_unpacker_1 = target_unpacker_1_1;
             },
             function (templating_utils_1_1) {
                 templating_utils_1 = templating_utils_1_1;
@@ -25,22 +31,32 @@ System.register(["lodash", "./templating_utils"], function(exports_1) {
                 GenericJSONDatasource.prototype.query = function (options) {
                     var _this = this;
                     var templatingUtils = new templating_utils_1.TemplatingUtils(this.templateSrv, options.scopedVars);
-                    var targetsRequests = lodash_1.default.flatten(lodash_1.default.map(options.targets, function (target) {
+                    var targetUnpacker = new target_unpacker_1.TargetUnpacker(templatingUtils);
+                    var targetsRequests = lodash_1.default.chain(options.targets)
+                        .map(function (target) {
                         var query = target.query;
+                        query.refId = target.refId;
+                        return query;
+                    })
+                        .map(function (target) { return targetUnpacker.unpack(target, "endpoint"); })
+                        .flatten()
+                        .map(function (target) { return targetUnpacker.unpack(target, "expression"); })
+                        .flatten()
+                        .map(function (query) {
                         var request = {
                             method: query.method,
                             url: _this.url + query.endpoint,
                             withCredentials: _this.withCredentials
                         };
-                        var unpackedExpresions = templatingUtils.replace(query.expression);
-                        return lodash_1.default.map(unpackedExpresions, function (unpackedExpression) {
-                            return {
-                                request: request,
-                                seriesName: query.alias === "__REF_ID" ? target.refId : _this.matchRegex(unpackedExpression, query.alias),
-                                valueEvaluator: _this.buildEvaluationFunction(unpackedExpression, query.regex)
-                            };
-                        });
-                    }));
+                        return {
+                            request: request,
+                            seriesNameEvaluator: query.seriesName === target_1.Target.REF_ID ?
+                                function () { return query.refId; } :
+                                _this.buildSeriesNameEvaluationFunction(query.seriesName),
+                            valueEvaluator: _this.buildValueEvaluationFunction(query.expression, query.regex)
+                        };
+                    })
+                        .value();
                     var inFlightRequests = {};
                     targetsRequests.forEach(function (request) {
                         var datasourceRequest = request.request;
@@ -56,7 +72,7 @@ System.register(["lodash", "./templating_utils"], function(exports_1) {
                         return runningRequest
                             .then(function (result) {
                             return {
-                                target: request.seriesName,
+                                target: request.seriesNameEvaluator(result),
                                 values: request.valueEvaluator(result)
                             };
                         })
@@ -96,7 +112,13 @@ System.register(["lodash", "./templating_utils"], function(exports_1) {
                         };
                     }
                 };
-                GenericJSONDatasource.prototype.buildEvaluationFunction = function (expression, regex) {
+                GenericJSONDatasource.prototype.buildSeriesNameEvaluationFunction = function (expression) {
+                    var _this = this;
+                    return function (result) {
+                        return _this.jmespath.search(result.data, expression);
+                    };
+                };
+                GenericJSONDatasource.prototype.buildValueEvaluationFunction = function (expression, regex) {
                     var _this = this;
                     return function (result) {
                         var value = _this.jmespath.search(result.data, expression);
@@ -104,7 +126,10 @@ System.register(["lodash", "./templating_utils"], function(exports_1) {
                     };
                 };
                 GenericJSONDatasource.prototype.matchRegex = function (value, regex) {
-                    return regex ? value.match(regex)[0] : value;
+                    if (typeof value === "string") {
+                        return value.match(regex)[0];
+                    }
+                    return value;
                 };
                 return GenericJSONDatasource;
             })();
