@@ -1,6 +1,5 @@
 import _ from "lodash";
 import {Target} from "../target";
-import {TargetUnpacker} from "./target_unpacker";
 import {TemplatingUtils} from "./templating_utils";
 
 export class GenericJSONDatasource {
@@ -28,7 +27,6 @@ export class GenericJSONDatasource {
 
     public query(options) {
         const templatingUtils = new TemplatingUtils(this.templateSrv, options.scopedVars);
-        const targetUnpacker = new TargetUnpacker(templatingUtils);
 
         const targetsRequests = _.chain(options.targets)
             .map((target) => {
@@ -36,9 +34,7 @@ export class GenericJSONDatasource {
                 query.refId = target.refId;
                 return query;
             })
-            .map((target) => targetUnpacker.unpack(target, "endpoint"))
-            .flatten()
-            .map((target) => targetUnpacker.unpack(target, "expression"))
+            .map((target) => templatingUtils.replaceObjectFlat(target, ["endpoint", "expression", "seriesName"]))
             .flatten()
             .map((query) => {
                 const request = {
@@ -49,9 +45,7 @@ export class GenericJSONDatasource {
 
                 return {
                     request,
-                    seriesNameEvaluator: query.seriesName === Target.REF_ID ?
-                        () => query.refId :
-                        this.buildSeriesNameEvaluationFunction(query.seriesName),
+                    seriesName: query.seriesName === Target.REF_ID ? query.refId : query.seriesName,
                     valueEvaluator: this.buildValueEvaluationFunction(query.expression, query.regex)
                 };
             })
@@ -73,7 +67,7 @@ export class GenericJSONDatasource {
             return runningRequest
                 .then((result) => {
                     return {
-                        target: request.seriesNameEvaluator(result),
+                        target: request.seriesName,
                         values: request.valueEvaluator(result)
                     };
                 })
@@ -117,15 +111,12 @@ export class GenericJSONDatasource {
         }
     }
 
-    private buildSeriesNameEvaluationFunction(expression) {
-        return (result) => {
-            return this.jmespath.search(result.data, expression);
-        };
-    }
-
     private buildValueEvaluationFunction(expression, regex) {
         return (result) => {
             const value = this.jmespath.search(result.data, expression);
+            if (_.isArray(value)) {
+                return _.map(value, (v) => this.matchRegex(v, regex));
+            }
             return this.matchRegex(value, regex);
         };
     }

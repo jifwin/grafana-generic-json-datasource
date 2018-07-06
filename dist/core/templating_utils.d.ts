@@ -5,6 +5,7 @@ export declare class TemplatingUtils {
     private templateSrv;
     private scopedVars;
     constructor(templateSrv: any, scopedVars?: any);
-    replace(expression: string): string[];
-    replaceAll(expressions: string[]): string[];
+    replaceCartesian(expression: string): string[];
+    replaceFlat(expression: string): any[];
+    replaceObjectFlat(object: any, properties: string[]): any[];
 }

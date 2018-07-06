@@ -13,7 +13,6 @@ export declare class GenericJSONDatasource {
     metricFindQuery(query: string): void;
     private buildRequestKey(request);
     private mapToDataPoints(result);
-    private buildSeriesNameEvaluationFunction(expression);
     private buildValueEvaluationFunction(expression, regex);
     private matchRegex(value, regex);
 }

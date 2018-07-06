@@ -13,7 +13,7 @@ System.register(["lodash"], function(exports_1) {
                     this.templateSrv = templateSrv;
                     this.scopedVars = scopedVars;
                 }
-                TemplatingUtils.prototype.replace = function (expression) {
+                TemplatingUtils.prototype.replaceCartesian = function (expression) {
                     var replacedExpression = this.templateSrv.replace(expression, this.scopedVars);
                     var matchedMultiValues = replacedExpression.match(TemplatingUtils.MULTI_VALUE_REGEX);
                     if (!lodash_1.default.isNil(matchedMultiValues)) {
@@ -31,9 +31,59 @@ System.register(["lodash"], function(exports_1) {
                     }
                     return [replacedExpression];
                 };
-                TemplatingUtils.prototype.replaceAll = function (expressions) {
+                TemplatingUtils.prototype.replaceFlat = function (expression) {
+                    var replacedExpression = this.templateSrv.replace(expression, this.scopedVars);
+                    var matchedMultiValues = lodash_1.default.uniq(replacedExpression.match(TemplatingUtils.MULTI_VALUE_REGEX));
+                    if (!lodash_1.default.isNil(matchedMultiValues)) {
+                        var replacedValues = [replacedExpression];
+                        matchedMultiValues.forEach(function (multiValue) {
+                            var values = multiValue.replace(TemplatingUtils.MULTI_VALUE_BOUNDARIES, "")
+                                .split(TemplatingUtils.MULTI_VALUE_SEPARATOR);
+                            replacedValues = lodash_1.default.flatMap(values, function (value) {
+                                return replacedValues.map(function (replacedValue) {
+                                    return replacedValue.replace(new RegExp(multiValue, "g"), value);
+                                });
+                            });
+                        });
+                        return replacedValues;
+                    }
+                    return [replacedExpression];
+                };
+                TemplatingUtils.prototype.replaceObjectFlat = function (object, properties) {
                     var _this = this;
-                    return lodash_1.default.flatten(expressions.map(function (expression) { return _this.replace(expression); }));
+                    var replacedObject = lodash_1.default.cloneDeep(object);
+                    properties.forEach(function (property) {
+                        replacedObject[property] = _this.templateSrv.replace(object[property], _this.scopedVars);
+                    });
+                    var matchedMultiValues = lodash_1.default.chain(properties)
+                        .map(function (property) { return replacedObject[property]; })
+                        .map(function (value) {
+                        var matched = value.match(TemplatingUtils.MULTI_VALUE_REGEX);
+                        if (lodash_1.default.isArray(matched)) {
+                            return matched[0];
+                        }
+                        return matched;
+                    })
+                        .filter(function (value) {
+                        return !lodash_1.default.isNil(value);
+                    })
+                        .uniq()
+                        .value();
+                    var replacedObjects = [replacedObject];
+                    matchedMultiValues.forEach(function (multiValue) {
+                        var values = multiValue.replace(TemplatingUtils.MULTI_VALUE_BOUNDARIES, "")
+                            .split(TemplatingUtils.MULTI_VALUE_SEPARATOR);
+                        replacedObjects = lodash_1.default.flatMap(values, function (value) {
+                            return replacedObjects.map(function (currentReplacedObject) {
+                                var replacedObjectCopy = lodash_1.default.cloneDeep(currentReplacedObject);
+                                properties.forEach(function (currentProperty) {
+                                    replacedObjectCopy[currentProperty] = currentReplacedObject[currentProperty].replace(multiValue, value);
+                                });
+                                return replacedObjectCopy;
+                            });
+                        });
+                    });
+                    return replacedObjects;
                 };
                 TemplatingUtils.MULTI_VALUE_SEPARATOR = ",";
                 TemplatingUtils.MULTI_VALUE_REGEX = /{.*?}/g;

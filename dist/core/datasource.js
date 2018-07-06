@@ -1,5 +1,5 @@
-System.register(["lodash", "../target", "./target_unpacker", "./templating_utils"], function(exports_1) {
-    var lodash_1, target_1, target_unpacker_1, templating_utils_1;
+System.register(["lodash", "../target", "./templating_utils"], function(exports_1) {
+    var lodash_1, target_1, templating_utils_1;
     var GenericJSONDatasource;
     return {
         setters:[
@@ -8,9 +8,6 @@ System.register(["lodash", "../target", "./target_unpacker", "./templating_utils
             },
             function (target_1_1) {
                 target_1 = target_1_1;
-            },
-            function (target_unpacker_1_1) {
-                target_unpacker_1 = target_unpacker_1_1;
             },
             function (templating_utils_1_1) {
                 templating_utils_1 = templating_utils_1_1;
@@ -31,16 +28,13 @@ System.register(["lodash", "../target", "./target_unpacker", "./templating_utils
                 GenericJSONDatasource.prototype.query = function (options) {
                     var _this = this;
                     var templatingUtils = new templating_utils_1.TemplatingUtils(this.templateSrv, options.scopedVars);
-                    var targetUnpacker = new target_unpacker_1.TargetUnpacker(templatingUtils);
                     var targetsRequests = lodash_1.default.chain(options.targets)
                         .map(function (target) {
                         var query = target.query;
                         query.refId = target.refId;
                         return query;
                     })
-                        .map(function (target) { return targetUnpacker.unpack(target, "endpoint"); })
-                        .flatten()
-                        .map(function (target) { return targetUnpacker.unpack(target, "expression"); })
+                        .map(function (target) { return templatingUtils.replaceObjectFlat(target, ["endpoint", "expression", "seriesName"]); })
                         .flatten()
                         .map(function (query) {
                         var request = {
@@ -50,9 +44,7 @@ System.register(["lodash", "../target", "./target_unpacker", "./templating_utils
                         };
                         return {
                             request: request,
-                            seriesNameEvaluator: query.seriesName === target_1.Target.REF_ID ?
-                                function () { return query.refId; } :
-                                _this.buildSeriesNameEvaluationFunction(query.seriesName),
+                            seriesName: query.seriesName === target_1.Target.REF_ID ? query.refId : query.seriesName,
                             valueEvaluator: _this.buildValueEvaluationFunction(query.expression, query.regex)
                         };
                     })
@@ -72,7 +64,7 @@ System.register(["lodash", "../target", "./target_unpacker", "./templating_utils
                         return runningRequest
                             .then(function (result) {
                             return {
-                                target: request.seriesNameEvaluator(result),
+                                target: request.seriesName,
                                 values: request.valueEvaluator(result)
                             };
                         })
@@ -112,16 +104,13 @@ System.register(["lodash", "../target", "./target_unpacker", "./templating_utils
                         };
                     }
                 };
-                GenericJSONDatasource.prototype.buildSeriesNameEvaluationFunction = function (expression) {
-                    var _this = this;
-                    return function (result) {
-                        return _this.jmespath.search(result.data, expression);
-                    };
-                };
                 GenericJSONDatasource.prototype.buildValueEvaluationFunction = function (expression, regex) {
                     var _this = this;
                     return function (result) {
                         var value = _this.jmespath.search(result.data, expression);
+                        if (lodash_1.default.isArray(value)) {
+                            return lodash_1.default.map(value, function (v) { return _this.matchRegex(v, regex); });
+                        }
                         return _this.matchRegex(value, regex);
                     };
                 };
